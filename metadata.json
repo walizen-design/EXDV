@@ -1,0 +1,6 @@
+{
+  "name": "HECHHI E-XDV Specifications",
+  "description": "An interactive specifications, range comparison, and high-performance showcase dashboard for the HECHHI E-XDV electric adventure motorcycle series.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
