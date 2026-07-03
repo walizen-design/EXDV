@@ -47,7 +47,11 @@ const SPEC_ROWS: SpecRow[] = [
   { label: "Container Loading Capacity (40HQ)", category: "Logistics", standardVal: "48 PCS", proVal: "48 PCS", proMaxVal: "48 PCS", isDifferent: false }
 ];
 
-export default function SpecsMatrix() {
+interface SpecsMatrixProps {
+  isDarkMode?: boolean;
+}
+
+export default function SpecsMatrix({ isDarkMode = true }: SpecsMatrixProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [highlightDiff, setHighlightDiff] = useState(false);
 
@@ -65,12 +69,21 @@ export default function SpecsMatrix() {
 
   const categories = ["Performance", "Battery & Range", "Chassis & Control", "Technology", "Logistics"] as const;
 
+  // Theme styles
+  const bgCard = isDarkMode ? "bg-brand-surface" : "bg-white";
+  const borderLight = isDarkMode ? "border-white/5" : "border-slate-200/85";
+  const borderMedium = isDarkMode ? "border-white/10" : "border-slate-300";
+  const bgBg = isDarkMode ? "bg-brand-bg/80" : "bg-slate-50";
+  const textTitle = isDarkMode ? "text-white" : "text-slate-900";
+  const textMain = isDarkMode ? "text-white" : "text-slate-800";
+  const textMuted = isDarkMode ? "text-brand-muted" : "text-slate-700";
+
   return (
-    <div className="bg-brand-surface rounded-2xl border border-white/5 overflow-hidden shadow-xl">
+    <div className={`rounded-2xl border overflow-hidden shadow-xl transition-all duration-300 ${bgCard} ${borderLight}`}>
       {/* Search & Toggle header */}
-      <div className="p-4 md:p-6 bg-brand-surface border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className={`p-4 md:p-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-300 ${bgCard} ${borderLight}`}>
         <div>
-          <h4 className="text-lg font-display font-bold text-white flex items-center gap-2">
+          <h4 className={`text-lg font-display font-bold flex items-center gap-2 ${textTitle}`}>
             Model Comparison Matrix
           </h4>
           <p className="text-xs text-brand-muted">Search specifications or highlight key variant differences.</p>
@@ -86,7 +99,9 @@ export default function SpecsMatrix() {
               placeholder="Search specifications..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-brand-bg/80 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white placeholder-brand-muted/70 focus:outline-none focus:border-brand-cyan/60 transition-colors w-full sm:w-48"
+              className={`border rounded-lg pl-9 pr-4 py-1.5 text-xs placeholder-brand-muted/70 focus:outline-none focus:border-brand-cyan/60 transition-colors w-full sm:w-48 ${
+                isDarkMode ? "bg-brand-bg/80 border-white/10 text-white" : "bg-slate-50 border-slate-300 text-slate-900 focus:ring-1 focus:ring-brand-cyan"
+              }`}
             />
           </div>
 
@@ -97,7 +112,7 @@ export default function SpecsMatrix() {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wider uppercase border transition-all duration-300 ${
               highlightDiff
                 ? "bg-brand-cyan/15 text-brand-cyan border-brand-cyan/30"
-                : "bg-brand-bg/50 text-brand-muted border-white/5 hover:border-white/15 hover:text-white"
+                : `${isDarkMode ? "bg-brand-bg/50 text-brand-muted border-white/5 hover:border-white/15 hover:text-white" : "bg-slate-100 text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-950"}`
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -110,13 +125,13 @@ export default function SpecsMatrix() {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[720px]">
           <thead>
-            <tr className="bg-brand-bg/60 border-b border-white/5">
+            <tr className={`border-b transition-colors duration-300 ${isDarkMode ? "bg-brand-bg/60 border-white/5" : "bg-slate-50 border-slate-200"}`}>
               <th className="p-4 text-xs font-mono font-bold text-brand-muted uppercase tracking-wider w-[30%]">Specification Field</th>
-              <th className="p-4 text-xs font-display font-bold text-white tracking-wider w-[23%]">
+              <th className={`p-4 text-xs font-display font-bold tracking-wider w-[23%] ${textTitle}`}>
                 <span className="block text-[9px] font-mono font-semibold tracking-widest text-brand-cyan uppercase">01 / Urban</span>
                 E-XDV
               </th>
-              <th className="p-4 text-xs font-display font-bold text-white tracking-wider w-[23%]">
+              <th className={`p-4 text-xs font-display font-bold tracking-wider w-[23%] ${textTitle}`}>
                 <span className="block text-[9px] font-mono font-semibold tracking-widest text-brand-cyan uppercase">02 / Advanced</span>
                 E-XDV Pro
               </th>
@@ -134,7 +149,7 @@ export default function SpecsMatrix() {
               return (
                 <React.Fragment key={cat}>
                   {/* Category Header Row */}
-                  <tr className="bg-brand-bg/30 border-y border-white/5">
+                  <tr className={`border-y transition-colors duration-300 ${isDarkMode ? "bg-brand-bg/30 border-white/5" : "bg-slate-100/50 border-slate-200"}`}>
                     <td colSpan={4} className="px-4 py-2 text-[10px] font-mono font-bold text-brand-cyan uppercase tracking-widest">
                       {cat} Specifications
                     </td>
@@ -143,7 +158,9 @@ export default function SpecsMatrix() {
                   {rowsInCat.map((row) => (
                     <tr
                       key={row.label}
-                      className={`border-b border-white/5 hover:bg-white/[0.02] transition-colors ${
+                      className={`border-b transition-colors duration-300 ${
+                        isDarkMode ? "border-white/5 hover:bg-white/[0.02]" : "border-slate-100 hover:bg-slate-50"
+                      } ${
                         row.isDifferent && highlightDiff ? "bg-brand-cyan/5" : ""
                       }`}
                     >
@@ -156,7 +173,7 @@ export default function SpecsMatrix() {
                       </td>
 
                       {/* Standard Model Value */}
-                      <td className="p-4 text-xs text-brand-text">
+                      <td className={`p-4 text-xs ${isDarkMode ? "text-brand-text" : "text-slate-700"}`}>
                         {row.standardVal === "Yes" ? (
                           <Check className="w-4 h-4 text-brand-cyan" />
                         ) : row.standardVal === "No" ? (
@@ -167,7 +184,7 @@ export default function SpecsMatrix() {
                       </td>
 
                       {/* Pro Model Value */}
-                      <td className="p-4 text-xs text-brand-text">
+                      <td className={`p-4 text-xs ${isDarkMode ? "text-brand-text" : "text-slate-700"}`}>
                         {row.proVal === "Yes" ? (
                           <Check className="w-4 h-4 text-brand-cyan" />
                         ) : row.proVal === "No" ? (
@@ -202,7 +219,9 @@ export default function SpecsMatrix() {
         )}
       </div>
 
-      <div className="p-4 bg-brand-bg/40 border-t border-white/5 text-[10px] font-mono text-brand-muted/60 flex flex-wrap justify-between gap-2">
+      <div className={`p-4 border-t text-[10px] font-mono flex flex-wrap justify-between gap-2 transition-colors duration-300 ${
+        isDarkMode ? "bg-brand-bg/40 border-white/5 text-brand-muted/60" : "bg-slate-50 border-slate-200 text-slate-500"
+      }`}>
         <span>* Solid-state packs provide stable chemistry across sub-zero climates.</span>
         <span>Zhejiang Easycool Motor Lab Co., Ltd.</span>
       </div>

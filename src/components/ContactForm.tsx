@@ -2,7 +2,11 @@ import React, { useState, useMemo } from "react";
 import { MODELS_DATA } from "../data";
 import { MessageSquare, Mail, ShieldCheck, ClipboardCheck, ArrowUpRight, HelpCircle } from "lucide-react";
 
-export default function ContactForm() {
+interface ContactFormProps {
+  isDarkMode?: boolean;
+}
+
+export default function ContactForm({ isDarkMode = true }: ContactFormProps) {
   const [selectedModelName, setSelectedModelName] = useState("E-XDV Pro Max");
   const [quantity, setQuantity] = useState(1);
   const [businessEmail, setBusinessEmail] = useState("");
@@ -43,8 +47,18 @@ export default function ContactForm() {
     setTimeout(() => setSuccessMsg(""), 4000);
   };
 
+  // Theme variable styles
+  const textTitle = isDarkMode ? "text-white" : "text-slate-900";
+  const textMain = isDarkMode ? "text-white" : "text-slate-800";
+  const textMuted = isDarkMode ? "text-brand-muted" : "text-slate-700";
+  const borderLight = isDarkMode ? "border-white/5" : "border-slate-200";
+  const borderMedium = isDarkMode ? "border-white/10" : "border-slate-300";
+  const bgSurface = isDarkMode ? "bg-brand-surface" : "bg-white";
+  const bgBg = isDarkMode ? "bg-brand-bg" : "bg-slate-50";
+  const inputBg = isDarkMode ? "bg-brand-bg text-white focus:border-brand-cyan" : "bg-slate-50 text-slate-900 border-slate-300 focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan";
+
   return (
-    <div id="contact-inquiry" className="p-6 md:p-8 bg-brand-surface rounded-2xl border border-white/5 shadow-2xl relative overflow-hidden">
+    <div id="contact-inquiry" className={`p-6 md:p-8 rounded-2xl border shadow-2xl relative overflow-hidden transition-all duration-300 ${bgSurface} ${borderLight}`}>
       {/* Decorative gradient backplate */}
       <div className="absolute -top-10 right-0 w-72 h-72 bg-brand-cyan/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -56,10 +70,10 @@ export default function ContactForm() {
             <span className="text-xs font-mono text-brand-cyan uppercase tracking-widest block mb-1">
               B2B / Retail Hub
             </span>
-            <h4 className="text-2xl font-display font-bold text-white tracking-tight">
+            <h4 className={`text-2xl font-display font-bold tracking-tight ${textTitle}`}>
               Build Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan to-brand-blue">Export Request</span>
             </h4>
-            <p className="text-xs text-brand-muted mt-1">
+            <p className={`text-xs mt-1 ${textMuted}`}>
               Select configurations and instantly generate official channels directly to HECHHI's factory.
             </p>
           </div>
@@ -67,17 +81,17 @@ export default function ContactForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Model select */}
             <div className="space-y-1.5">
-              <label htmlFor="inquiry-model" className="text-[10px] font-mono tracking-wider text-brand-muted uppercase block">
+              <label htmlFor="inquiry-model" className={`text-[10px] font-mono tracking-wider uppercase block ${textMuted}`}>
                 Target Model Variant
               </label>
               <select
                 id="inquiry-model"
                 value={selectedModelName}
                 onChange={(e) => setSelectedModelName(e.target.value)}
-                className="w-full bg-brand-bg text-xs border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-cyan transition-colors"
+                className={`w-full text-xs border rounded-lg p-2.5 transition-colors focus:outline-none ${inputBg}`}
               >
                 {MODELS_DATA.map((m) => (
-                  <option key={m.name} value={m.name}>
+                  <option key={m.name} value={m.name} className={isDarkMode ? "bg-brand-surface" : "bg-white"}>
                     {m.name} ({m.class})
                   </option>
                 ))}
@@ -86,7 +100,7 @@ export default function ContactForm() {
 
             {/* Target quantity */}
             <div className="space-y-1.5">
-              <label htmlFor="inquiry-qty" className="text-[10px] font-mono tracking-wider text-brand-muted uppercase block">
+              <label htmlFor="inquiry-qty" className={`text-[10px] font-mono tracking-wider uppercase block ${textMuted}`}>
                 Quantity Required
               </label>
               <input
@@ -96,7 +110,7 @@ export default function ContactForm() {
                 max="500"
                 value={quantity}
                 onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full bg-brand-bg text-xs border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-cyan transition-colors font-mono"
+                className={`w-full text-xs border rounded-lg p-2.5 transition-colors font-mono focus:outline-none ${inputBg}`}
               />
             </div>
           </div>
@@ -104,7 +118,7 @@ export default function ContactForm() {
           {/* Business identity */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label htmlFor="inquiry-company" className="text-[10px] font-mono tracking-wider text-brand-muted uppercase block">
+              <label htmlFor="inquiry-company" className={`text-[10px] font-mono tracking-wider uppercase block ${textMuted}`}>
                 Company Name (Optional)
               </label>
               <input
@@ -113,12 +127,12 @@ export default function ContactForm() {
                 placeholder="e.g. EuroMoto Distributing LLC"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full bg-brand-bg text-xs border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-cyan transition-colors"
+                className={`w-full text-xs border rounded-lg p-2.5 transition-colors focus:outline-none ${inputBg}`}
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="inquiry-email" className="text-[10px] font-mono tracking-wider text-brand-muted uppercase block">
+              <label htmlFor="inquiry-email" className={`text-[10px] font-mono tracking-wider uppercase block ${textMuted}`}>
                 Your Email Address (Optional)
               </label>
               <input
@@ -127,18 +141,20 @@ export default function ContactForm() {
                 placeholder="e.g. buyer@euromoto.com"
                 value={businessEmail}
                 onChange={(e) => setBusinessEmail(e.target.value)}
-                className="w-full bg-brand-bg text-xs border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-cyan transition-colors"
+                className={`w-full text-xs border rounded-lg p-2.5 transition-colors focus:outline-none ${inputBg}`}
               />
             </div>
           </div>
 
           {/* Add-ons upgrades checkboxes */}
           <div className="space-y-2">
-            <span className="text-[10px] font-mono tracking-wider text-brand-muted uppercase block mb-1">
+            <span className={`text-[10px] font-mono tracking-wider uppercase block mb-1 ${textMuted}`}>
               Upgrade Packages & Accessories
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <label htmlFor="check-extra-battery" className="flex items-center gap-2 p-2.5 bg-brand-bg/50 border border-white/5 rounded-lg cursor-pointer hover:bg-brand-bg transition-colors">
+              <label htmlFor="check-extra-battery" className={`flex items-center gap-2 p-2.5 border rounded-lg cursor-pointer transition-colors ${
+                isDarkMode ? "bg-brand-bg/50 border-white/5 hover:bg-brand-bg" : "bg-slate-50 border-slate-200 hover:bg-slate-100"
+              }`}>
                 <input
                   id="check-extra-battery"
                   type="checkbox"
@@ -146,10 +162,12 @@ export default function ContactForm() {
                   onChange={(e) => setExtraBattery(e.target.checked)}
                   className="rounded border-white/10 accent-brand-cyan h-3.5 w-3.5"
                 />
-                <span className="text-[11px] text-brand-text truncate">Spare 75V Module</span>
+                <span className={`text-[11px] truncate ${textMain}`}>Spare 75V Module</span>
               </label>
 
-              <label htmlFor="check-tri-monitor" className="flex items-center gap-2 p-2.5 bg-brand-bg/50 border border-white/5 rounded-lg cursor-pointer hover:bg-brand-bg transition-colors">
+              <label htmlFor="check-tri-monitor" className={`flex items-center gap-2 p-2.5 border rounded-lg cursor-pointer transition-colors ${
+                isDarkMode ? "bg-brand-bg/50 border-white/5 hover:bg-brand-bg" : "bg-slate-50 border-slate-200 hover:bg-slate-100"
+              }`}>
                 <input
                   id="check-tri-monitor"
                   type="checkbox"
@@ -157,10 +175,12 @@ export default function ContactForm() {
                   onChange={(e) => setTriMonitorUpgrade(e.target.checked)}
                   className="rounded border-white/10 accent-brand-cyan h-3.5 w-3.5"
                 />
-                <span className="text-[11px] text-brand-text truncate">Tri-Monitor HUD</span>
+                <span className={`text-[11px] truncate ${textMain}`}>Tri-Monitor HUD</span>
               </label>
 
-              <label htmlFor="check-michelin" className="flex items-center gap-2 p-2.5 bg-brand-bg/50 border border-white/5 rounded-lg cursor-pointer hover:bg-brand-bg transition-colors">
+              <label htmlFor="check-michelin" className={`flex items-center gap-2 p-2.5 border rounded-lg cursor-pointer transition-colors ${
+                isDarkMode ? "bg-brand-bg/50 border-white/5 hover:bg-brand-bg" : "bg-slate-50 border-slate-200 hover:bg-slate-100"
+              }`}>
                 <input
                   id="check-michelin"
                   type="checkbox"
@@ -168,33 +188,37 @@ export default function ContactForm() {
                   onChange={(e) => setMichelinUpgrade(e.target.checked)}
                   className="rounded border-white/10 accent-brand-cyan h-3.5 w-3.5"
                 />
-                <span className="text-[11px] text-brand-text truncate">Michelin Vacuum</span>
+                <span className={`text-[11px] truncate ${textMain}`}>Michelin Vacuum</span>
               </label>
             </div>
           </div>
         </div>
 
         {/* Right column: Form output sheet (Col-span 5) */}
-        <div className="lg:col-span-5 bg-brand-bg border border-white/5 rounded-xl p-5 flex flex-col justify-between gap-5 h-full min-h-[320px]">
+        <div className={`border rounded-xl p-5 flex flex-col justify-between gap-5 h-full min-h-[320px] transition-all duration-300 ${
+          isDarkMode ? "bg-brand-bg border-white/5" : "bg-slate-50 border-slate-200 shadow-sm"
+        }`}>
           <div>
-            <div className="flex items-center justify-between border-b border-white/5 pb-3">
-              <span className="text-[10px] font-mono tracking-widest text-brand-muted uppercase">
+            <div className={`flex items-center justify-between border-b pb-3 ${borderLight}`}>
+              <span className={`text-[10px] font-mono tracking-widest uppercase ${textMuted}`}>
                 Generated Inquiry Sheet
               </span>
-              <span className="text-[9px] font-mono text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded">
+              <span className="text-[9px] font-mono text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded font-bold uppercase">
                 Official Zhejiang Factory
               </span>
             </div>
 
             {/* Generated spec-sheet box preview */}
-            <div className="mt-4 bg-brand-surface/60 border border-white/5 p-4 rounded-lg text-[11px] font-mono text-brand-muted space-y-3 leading-relaxed">
+            <div className={`mt-4 border p-4 rounded-lg text-[11px] font-mono space-y-3 leading-relaxed transition-all duration-300 ${
+              isDarkMode ? "bg-brand-surface/60 border-white/5 text-brand-muted" : "bg-white border-slate-200 text-slate-600"
+            }`}>
               <p>
-                <span className="text-white">TO:</span> Zhejiang Easycool Motorcycle Co., Ltd.
+                <span className={isDarkMode ? "text-white font-bold" : "text-slate-900 font-bold"}>TO:</span> Zhejiang Easycool Motorcycle Co., Ltd.
               </p>
               <p>
-                <span className="text-white">SUBJECT:</span> B2B Specs & Quotation Request
+                <span className={isDarkMode ? "text-white font-bold" : "text-slate-900 font-bold"}>SUBJECT:</span> B2B Specs & Quotation Request
               </p>
-              <p className="border-t border-dashed border-white/10 pt-3 italic">
+              <p className={`border-t border-dashed pt-3 italic ${borderLight}`}>
                 "{formattedInquiry.text}"
               </p>
             </div>
@@ -207,7 +231,7 @@ export default function ContactForm() {
                 href={formattedInquiry.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-brand-bg text-xs font-bold uppercase tracking-wider py-3 px-4 rounded-lg transition-all shadow-lg hover:shadow-emerald-500/15"
+                className="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-wider py-3 px-4 rounded-lg transition-all shadow-lg hover:shadow-emerald-500/15"
               >
                 <MessageSquare className="w-4 h-4" />
                 Contact WhatsApp
@@ -216,7 +240,11 @@ export default function ContactForm() {
 
               <a
                 href={formattedInquiry.emailUrl}
-                className="flex-1 inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold uppercase tracking-wider py-3 px-4 rounded-lg transition-all"
+                className={`flex-1 inline-flex items-center justify-center gap-2 border text-xs font-bold uppercase tracking-wider py-3 px-4 rounded-lg transition-all ${
+                  isDarkMode
+                    ? "bg-white/5 hover:bg-white/10 border-white/10 text-white"
+                    : "bg-white hover:bg-slate-100 border-slate-200 text-slate-800 shadow-sm"
+                }`}
               >
                 <Mail className="w-4 h-4" />
                 Email Factory
@@ -226,14 +254,18 @@ export default function ContactForm() {
             <button
               id="btn-copy-inquiry"
               onClick={handleCopyToClipboard}
-              className="w-full flex items-center justify-center gap-1.5 text-[11px] font-mono text-brand-cyan hover:text-white transition-colors py-1 bg-brand-surface/30 rounded border border-brand-cyan/20 cursor-pointer"
+              className={`w-full flex items-center justify-center gap-1.5 text-[11px] font-mono border rounded py-1.5 cursor-pointer transition-colors ${
+                isDarkMode
+                  ? "text-brand-cyan bg-brand-surface/30 border-brand-cyan/20 hover:text-white"
+                  : "text-brand-cyan bg-white border-brand-cyan/20 hover:bg-brand-cyan/5"
+              }`}
             >
               <ClipboardCheck className="w-3.5 h-3.5" />
               Copy Raw Inquiry Text
             </button>
 
             {successMsg && (
-              <div className="text-[10px] text-center font-mono text-emerald-400 bg-emerald-400/5 py-1 px-2 border border-emerald-400/10 rounded">
+              <div className="text-[10px] text-center font-mono text-emerald-400 bg-emerald-400/5 py-1.5 px-2 border border-emerald-400/10 rounded">
                 {successMsg}
               </div>
             )}
@@ -243,7 +275,7 @@ export default function ContactForm() {
       </div>
 
       {/* Security note / Trust footer */}
-      <div className="mt-6 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-brand-muted/70">
+      <div className={`mt-6 pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] ${borderLight} ${textMuted}`}>
         <div className="flex items-center gap-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-brand-cyan" />
           <span>Direct Factory Channel: shane@easycool-tech.com · Mobile/WhatsApp +86 15967025453</span>
