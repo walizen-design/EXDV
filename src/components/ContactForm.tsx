@@ -195,7 +195,7 @@ export default function ContactForm({ isDarkMode = true }: ContactFormProps) {
         </div>
 
         {/* Right column: Form output sheet (Col-span 5) */}
-        <div className={`border rounded-xl p-5 flex flex-col justify-between gap-5 h-full min-h-[320px] transition-all duration-300 ${
+        <div className={`lg:col-span-5 w-full border rounded-xl p-5 flex flex-col justify-between gap-5 h-full min-h-[320px] transition-all duration-300 ${
           isDarkMode ? "bg-brand-bg border-white/5" : "bg-slate-50 border-slate-200 shadow-sm"
         }`}>
           <div>
