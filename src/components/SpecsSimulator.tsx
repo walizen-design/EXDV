@@ -24,30 +24,44 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
 
   // Dynamic range calculation based on physical variables
   const computedStats = useMemo(() => {
+    // Base efficiency: km per kWh at 50km/h
+    // E-XDV: 130km / 2.25kWh = 57.7 km/kWh
+    // Pro: 180km / 3.24kWh = 55.5 km/kWh
+    // Pro Max: 230km / 4.50kWh = 51.1 km/kWh
     const baseKmPerKWh = selectedModel.range / batteryCapacityKWh;
 
+    // 1. Aerodynamic drag factor: Model-specific speed degradation to match official ratings exactly
+    // E-XDV: 60km/130km (46.15% at 100km/h)
+    // E-XDV Pro: 90km/180km (50% at 100km/h)
+    // E-XDV Pro Max: 120km/230km (52.17% at 100km/h)
     const r100 = selectedModelIndex === 0 ? 0.4615 : selectedModelIndex === 1 ? 0.50 : 0.5217;
     let speedFactor = 1.0;
     if (speed < 50) {
+      // Gentle efficiency curve below 50 km/h (up to +12% at 30 km/h)
       const ratio = (50 - speed) / 20;
       speedFactor = 1.0 + ratio * 0.12;
     } else {
+      // Smooth quadratic drag curve interpolating precisely to r100 at 100 km/h and extrapolating up to topSpeed
       const ratio = (speed - 50) / 50;
       speedFactor = 1.0 - (1.0 - r100) * (ratio * 0.85 + ratio * ratio * 0.15);
     }
 
+    // 2. Load weight factor: base is 75kg solo rider
     const loadExcess = cargoLoad - 75;
-    const loadFactor = 1.0 - (loadExcess / 300) * 0.22;
+    const loadFactor = 1.0 - (loadExcess / 300) * 0.22; // up to 16.5% reduction at max load
 
+    // 3. Chemistry-aware Temperature factor: Solid-state vs Traditional cylindrical Lithium-ion
+    // Solid-state (E-XDV, Pro Max) is highly resilient in winter (-12% at -10°C)
+    // LG 21700 Cylindrical (Pro) suffers standard cell degradation (-28% at -10°C)
     let tempFactor = 1.0;
     const isSolidState = selectedModelIndex === 0 || selectedModelIndex === 2;
     
     if (temperature < 25) {
-      const coldDelta = (25 - temperature) / 35;
+      const coldDelta = (25 - temperature) / 35; // scales from 0 to 1 down to -10°C
       const maxColdLoss = isSolidState ? 0.12 : 0.28;
       tempFactor = 1.0 - coldDelta * maxColdLoss;
     } else if (temperature > 25) {
-      const heatDelta = (temperature - 25) / 20;
+      const heatDelta = (temperature - 25) / 20; // scales from 0 to 1 up to 45°C
       const maxHeatLoss = isSolidState ? 0.03 : 0.08;
       tempFactor = 1.0 - heatDelta * maxHeatLoss;
     }
@@ -58,13 +72,17 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
     // Charge speed simulation
     let chargeMinutes = 180;
     if (chargingInput === "ccs") {
+      // Standard: 2.5h (150m) home, no car station charge
+      // Pro: 4h
+      // Pro Max: 3h (180m)
       chargeMinutes = selectedModelIndex === 0 ? 150 : selectedModelIndex === 1 ? 240 : 180;
       if (selectedModelIndex > 0) {
-        chargeMinutes = Math.round(chargeMinutes * 0.15);
+        chargeMinutes = Math.round(chargeMinutes * 0.15); // CCS Car charger takes only 15% of the time
       }
     } else if (chargingInput === "dedicated") {
       chargeMinutes = selectedModelIndex === 0 ? 40 : selectedModelIndex === 1 ? 30 : 20;
     } else {
+      // Home outlet
       chargeMinutes = selectedModelIndex === 0 ? 150 : selectedModelIndex === 1 ? 300 : 240;
     }
 
@@ -120,12 +138,12 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
           </div>
 
           {/* Slider 1: Speed */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="flex justify-between items-baseline">
               <label htmlFor="sim-speed" className={`text-xs font-mono font-semibold tracking-wider uppercase flex items-center gap-1.5 ${isDarkMode ? "text-brand-muted" : "text-slate-700"}`}>
                 <Gauge className="w-3.5 h-3.5 text-brand-cyan" /> Speed
               </label>
-              <span className="text-base font-lcd font-semibold text-brand-cyan">{speed} <span className={`text-[11px] font-mono ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>km/h</span></span>
+              <span className="text-sm font-mono font-bold text-brand-cyan">{speed} <span className={`text-[10px] ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>km/h</span></span>
             </div>
             <input
               id="sim-speed"
@@ -133,11 +151,10 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
               min="30"
               max={selectedModel.topSpeed}
               value={speed}
-              aria-label="Speed slider"
               onChange={(e) => setSpeed(Number(e.target.value))}
-              className="w-full focus:outline-none"
+              className={`w-full h-1 rounded-lg appearance-none cursor-pointer accent-brand-cyan transition-all ${isDarkMode ? "bg-brand-bg" : "bg-slate-200"}`}
             />
-            <div className={`flex justify-between text-[11px] font-mono ${isDarkMode ? "text-brand-muted/60" : "text-slate-500"}`}>
+            <div className={`flex justify-between text-[10px] font-mono ${isDarkMode ? "text-brand-muted/60" : "text-slate-500"}`}>
               <span>Eco (30 km/h)</span>
               <span>Sport</span>
               <span>Max ({selectedModel.topSpeed} km/h)</span>
@@ -145,12 +162,12 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
           </div>
 
           {/* Slider 2: Passenger & Cargo Load */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="flex justify-between items-baseline">
               <label htmlFor="sim-load" className={`text-xs font-mono font-semibold tracking-wider uppercase flex items-center gap-1.5 ${isDarkMode ? "text-brand-muted" : "text-slate-700"}`}>
                 <Weight className="w-3.5 h-3.5 text-brand-cyan" /> Passenger & Cargo Load
               </label>
-              <span className="text-base font-lcd font-semibold text-brand-cyan">{cargoLoad} <span className={`text-[11px] font-mono ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>kg</span></span>
+              <span className="text-sm font-mono font-bold text-brand-cyan">{cargoLoad} <span className={`text-[10px] ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>kg</span></span>
             </div>
             <input
               id="sim-load"
@@ -158,11 +175,10 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
               min="75"
               max={selectedModel.maxLoad}
               value={cargoLoad}
-              aria-label="Load slider"
               onChange={(e) => setCargoLoad(Number(e.target.value))}
-              className="w-full focus:outline-none"
+              className={`w-full h-1 rounded-lg appearance-none cursor-pointer accent-brand-cyan transition-all ${isDarkMode ? "bg-brand-bg" : "bg-slate-200"}`}
             />
-            <div className={`flex justify-between text-[11px] font-mono ${isDarkMode ? "text-brand-muted/60" : "text-slate-500"}`}>
+            <div className={`flex justify-between text-[10px] font-mono ${isDarkMode ? "text-brand-muted/60" : "text-slate-500"}`}>
               <span>Solo Rider (75 kg)</span>
               <span>With Passenger</span>
               <span>Max Capacity ({selectedModel.maxLoad} kg)</span>
@@ -170,12 +186,12 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
           </div>
 
           {/* Slider 3: Ambient Temperature */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="flex justify-between items-baseline">
               <label htmlFor="sim-temp" className={`text-xs font-mono font-semibold tracking-wider uppercase flex items-center gap-1.5 ${isDarkMode ? "text-brand-muted" : "text-slate-700"}`}>
                 <Sun className="w-3.5 h-3.5 text-brand-cyan" /> Ambient Temperature
               </label>
-              <span className="text-base font-lcd font-semibold text-brand-cyan">{temperature} <span className={`text-[11px] font-mono ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>°C</span></span>
+              <span className="text-sm font-mono font-bold text-brand-cyan">{temperature} <span className={`text-[10px] ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>°C</span></span>
             </div>
             <input
               id="sim-temp"
@@ -183,11 +199,10 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
               min="-10"
               max="45"
               value={temperature}
-              aria-label="Temperature slider"
               onChange={(e) => setTemperature(Number(e.target.value))}
-              className="w-full focus:outline-none"
+              className={`w-full h-1 rounded-lg appearance-none cursor-pointer accent-brand-cyan transition-all ${isDarkMode ? "bg-brand-bg" : "bg-slate-200"}`}
             />
-            <div className={`flex justify-between text-[11px] font-mono ${isDarkMode ? "text-brand-muted/60" : "text-slate-500"}`}>
+            <div className={`flex justify-between text-[10px] font-mono ${isDarkMode ? "text-brand-muted/60" : "text-slate-500"}`}>
               <span>Sub-Zero Winter (-10°C)</span>
               <span>Optimal (25°C)</span>
               <span>Extreme Heat (45°C)</span>
@@ -203,82 +218,77 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
               <button
                 id="charge-method-ccs"
                 onClick={() => setChargingInput("ccs")}
-                className={`px-3 py-2 rounded-lg text-left text-xs transition-all border cursor-pointer focus:ring-2 focus:ring-brand-cyan/50 focus:outline-none ${
+                className={`px-3 py-2 rounded-lg text-left text-xs transition-all border ${
                   chargingInput === "ccs"
                     ? "bg-brand-cyan/10 text-brand-cyan border-brand-cyan/40"
                     : `${isDarkMode ? "bg-brand-bg/50 text-brand-muted border-transparent hover:border-white/5 hover:text-white" : "bg-slate-100 text-slate-600 border-transparent hover:border-slate-200"}`
                 }`}
               >
                 <div className="font-semibold text-[11px] sm:text-xs">CCS Car Pile</div>
-                <div className="text-[10px] opacity-70 mt-0.5 font-mono">DC Quick</div>
+                <div className="text-[9px] opacity-70 mt-0.5">High Speed DC</div>
               </button>
               <button
                 id="charge-method-dedicated"
                 onClick={() => setChargingInput("dedicated")}
-                className={`px-3 py-2 rounded-lg text-left text-xs transition-all border cursor-pointer focus:ring-2 focus:ring-brand-cyan/50 focus:outline-none ${
+                className={`px-3 py-2 rounded-lg text-left text-xs transition-all border ${
                   chargingInput === "dedicated"
                     ? "bg-brand-cyan/10 text-brand-cyan border-brand-cyan/40"
                     : `${isDarkMode ? "bg-brand-bg/50 text-brand-muted border-transparent hover:border-white/5 hover:text-white" : "bg-slate-100 text-slate-600 border-transparent hover:border-slate-200"}`
                 }`}
               >
                 <div className="font-semibold text-[11px] sm:text-xs">HECHHI Pile</div>
-                <div className="text-[10px] opacity-70 mt-0.5 font-mono">Dedicated</div>
+                <div className="text-[9px] opacity-70 mt-0.5">Dedicated DC</div>
               </button>
               <button
                 id="charge-method-home"
                 onClick={() => setChargingInput("home")}
-                className={`px-3 py-2 rounded-lg text-left text-xs transition-all border cursor-pointer focus:ring-2 focus:ring-brand-cyan/50 focus:outline-none ${
+                className={`px-3 py-2 rounded-lg text-left text-xs transition-all border ${
                   chargingInput === "home"
                     ? "bg-brand-cyan/10 text-brand-cyan border-brand-cyan/40"
                     : `${isDarkMode ? "bg-brand-bg/50 text-brand-muted border-transparent hover:border-white/5 hover:text-white" : "bg-slate-100 text-slate-600 border-transparent hover:border-slate-200"}`
                 }`}
               >
-                <div className="font-semibold text-[11px] sm:text-xs">220V Home</div>
-                <div className="text-[10px] opacity-70 mt-0.5 font-mono">Portable AC</div>
+                <div className="font-semibold text-[11px] sm:text-xs">220V Home Plug</div>
+                <div className="text-[9px] opacity-70 mt-0.5">Portable AC</div>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Output Panel & High-tech Radar HUD (Redesigned with LCD fonts, Grid overlay, depth borders) */}
-        <div className={`lg:col-span-5 border rounded-2xl p-6 flex flex-col justify-between gap-6 relative transition-all duration-300 ${
-          isDarkMode 
-            ? "bg-gradient-to-b from-[#0e172a]/95 to-[#0b0f19]/95 border-brand-cyan/15 shadow-2xl shadow-black/80" 
-            : "bg-slate-50 border-slate-300 shadow-xl"
+        {/* Output Panel & High-tech Radar */}
+        <div className={`lg:col-span-5 border rounded-xl p-6 flex flex-col justify-between gap-6 relative transition-all duration-300 ${
+          isDarkMode ? "bg-brand-bg/80 border-white/5" : "bg-slate-50 border-slate-200/80"
         }`}>
-          {/* Coordinating Depth Borders */}
-          <div className="absolute top-1 right-1 bottom-1 left-1 border border-dashed border-brand-cyan/5 rounded-xl pointer-events-none" />
-
-          <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded border border-emerald-500/20 z-10">
-            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> Telemetry HUD
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-emerald-500/10 text-emerald-400 text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-1 rounded">
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> Live Telemetry
           </div>
 
-          <div className="space-y-5 z-10">
+          <div className="space-y-6">
             {/* Range output */}
-            <div className={`border-b pb-4 ${isDarkMode ? "border-brand-cyan/10" : "border-slate-200"}`}>
-              <span className={`text-[10px] font-mono tracking-widest uppercase block mb-1 ${isDarkMode ? "text-brand-cyan/80" : "text-slate-700"}`}>Estimated True Range</span>
+            <div className={`border-b pb-5 ${isDarkMode ? "border-white/5" : "border-slate-200"}`}>
+              <span className={`text-[10px] font-mono tracking-widest uppercase block mb-1 ${isDarkMode ? "text-brand-muted" : "text-slate-700"}`}>Estimated True Range</span>
               <div className="flex items-baseline gap-1.5">
-                <span className={`text-5xl md:text-6xl font-lcd tracking-normal font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${selectedModelIndex === 2 ? 'from-rose-500 to-amber-500' : 'from-brand-cyan to-brand-blue'} animate-pulse`}>
+                <span className={`text-5xl md:text-6xl font-display font-extrabold tracking-tight ${isDarkMode ? "text-white" : "text-slate-900"}`}>
                   {computedStats.range}
                 </span>
-                <span className="text-lg font-lcd font-bold text-brand-cyan">KM</span>
+                <span className="text-xl font-display font-semibold text-brand-cyan">KM</span>
               </div>
-              <p className={`text-[11px] leading-relaxed mt-2 ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>
+              <p className={`text-xs mt-2 ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>
                 Derived dynamically from a {batteryCapacityKWh} kWh solid-state cluster. Standard rated range: <strong className={isDarkMode ? "text-white" : "text-slate-800"}>{selectedModel.range} KM</strong>.
               </p>
             </div>
 
-            {/* HIGH-TECH RADAR WIDGET (Aesthetic holographic center) */}
-            <div className={`relative w-full h-32 rounded-xl overflow-hidden border ${
-              isDarkMode ? "bg-black/60 border-brand-cyan/10" : "bg-white border-slate-200"
+            {/* HIGH-TECH RADAR WIDGET (Inspired by Mockup 1: "Monitor your Helicopter") */}
+            <div className={`relative w-full h-36 rounded-xl overflow-hidden border ${
+              isDarkMode ? "bg-black/40 border-white/5" : "bg-white border-slate-200"
             }`}>
               {/* Radar Coordinate Grid */}
-              <div className="absolute inset-0 opacity-15 bg-[linear-gradient(rgba(0,240,255,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(0,240,255,0.2)_1px,transparent_1px)] bg-[size:10px_10px]" />
+              <div className={`absolute inset-0 opacity-10 bg-[linear-gradient(rgba(0,212,255,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(0,212,255,0.2)_1px,transparent_1px)] bg-[size:12px_12px]`} />
               
               {/* Concentric rings */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className={`w-24 h-24 rounded-full border border-dashed flex items-center justify-center ${isDarkMode ? "border-brand-cyan/20" : "border-brand-cyan/40"}`}>
-                  <div className={`w-14 h-14 rounded-full border flex items-center justify-center ${isDarkMode ? "border-brand-cyan/15" : "border-brand-cyan/35"}`}>
+                <div className={`w-28 h-28 rounded-full border border-dashed flex items-center justify-center ${isDarkMode ? "border-brand-cyan/20" : "border-brand-cyan/40"}`}>
+                  <div className={`w-16 h-16 rounded-full border flex items-center justify-center ${isDarkMode ? "border-brand-cyan/15" : "border-brand-cyan/35"}`}>
                     <div className={`w-6 h-6 rounded-full border ${isDarkMode ? "border-brand-cyan/10" : "border-brand-cyan/25"}`} />
                   </div>
                 </div>
@@ -289,9 +299,9 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
               <div className={`absolute inset-y-0 left-1/2 w-[1px] ${isDarkMode ? "bg-brand-cyan/15" : "bg-brand-cyan/30"}`} />
 
               {/* Sweeping scan lines */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-[spin_4s_linear_infinite]">
-                <div className="w-24 h-24 rounded-full overflow-hidden relative">
-                  <div className="absolute top-1/2 left-1/2 w-1/2 h-1/2 bg-gradient-to-tr from-brand-cyan/25 to-transparent origin-top-left -translate-y-full -translate-x-full rotate-[45deg]" />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-[spin_5s_linear_infinite]">
+                <div className="w-28 h-28 rounded-full overflow-hidden relative">
+                  <div className="absolute top-1/2 left-1/2 w-1/2 h-1/2 bg-gradient-to-tr from-brand-cyan/20 to-transparent origin-top-left -translate-y-full -translate-x-full rotate-[45deg]" />
                 </div>
               </div>
 
@@ -299,20 +309,20 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
               <div className="absolute top-1/4 left-1/4">
                 <span className="absolute inline-flex h-2 w-2 rounded-full bg-brand-cyan opacity-75 animate-ping" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-cyan" />
-                <span className={`absolute ml-2.5 -mt-1 text-[8px] font-mono tracking-tighter ${isDarkMode ? "text-brand-cyan/80" : "text-brand-cyan"}`}>BAT_P1</span>
+                <span className={`absolute ml-2.5 -mt-1 text-[8px] font-mono tracking-tighter ${isDarkMode ? "text-brand-cyan/80" : "text-brand-cyan"}`}>PACK_A</span>
               </div>
               <div className="absolute bottom-1/4 right-1/4">
                 <span className="absolute inline-flex h-2 w-2 rounded-full bg-brand-blue opacity-75 animate-ping" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-blue" />
-                <span className={`absolute ml-2.5 -mt-1 text-[8px] font-mono tracking-tighter ${isDarkMode ? "text-brand-blue" : "text-brand-blue"}`}>BAT_P2</span>
+                <span className={`absolute ml-2.5 -mt-1 text-[8px] font-mono tracking-tighter ${isDarkMode ? "text-brand-blue" : "text-brand-blue"}`}>PACK_B</span>
               </div>
 
               {/* Real-time scanning telemetry values */}
               <div className="absolute bottom-2 left-3 font-mono text-[9px] text-brand-cyan font-semibold tracking-wider">
-                BAL_CELLS: ONLINE
+                BAL_CELLS: OK
               </div>
               <div className="absolute top-2 left-3 font-mono text-[9px] text-emerald-400 flex items-center gap-1 font-bold">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> AR_HUD_LINK
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> HELMET_HUD_FEED
               </div>
               <div className={`absolute top-2 right-3 font-mono text-[9px] ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>
                 TEMP: {temperature}°C
@@ -320,21 +330,21 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
             </div>
 
             {/* Simulated charge time */}
-            <div className={`border-b pb-4 ${isDarkMode ? "border-brand-cyan/10" : "border-slate-200"}`}>
+            <div className={`border-b pb-5 ${isDarkMode ? "border-white/5" : "border-slate-200"}`}>
               <span className={`text-[10px] font-mono tracking-widest uppercase block mb-1 ${isDarkMode ? "text-brand-muted" : "text-slate-700"}`}>Simulated 0-100% Charge</span>
               <div className="flex items-center gap-3">
                 <Timer className="w-5 h-5 text-brand-cyan" />
-                <span className="text-2xl font-lcd font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan to-brand-blue">
+                <span className={`text-2xl font-display font-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}>
                   {computedStats.chargeTimeMinutes >= 60
                     ? `${Math.floor(computedStats.chargeTimeMinutes / 60)}h ${computedStats.chargeTimeMinutes % 60 > 0 ? `${computedStats.chargeTimeMinutes % 60}m` : ""}`
-                    : `${computedStats.chargeTimeMinutes} Min`}
+                    : `${computedStats.chargeTimeMinutes} Minutes`}
                 </span>
               </div>
-              <p className={`text-[11px] leading-relaxed mt-2 ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>
+              <p className={`text-xs mt-2 ${isDarkMode ? "text-brand-muted" : "text-slate-600"}`}>
                 {chargingInput === "ccs" && selectedModelIndex === 0 ? (
-                  <span className="text-amber-500 font-semibold text-[10px] uppercase block">⚠️ STANDARD MODEL DOES NOT SUPPORT CCS DC CAR PILES</span>
+                  <span className="text-amber-500 font-medium">⚠️ Standard E-XDV model does not support high-speed CCS1/2 Car Piles directly.</span>
                 ) : (
-                  <span>Using {chargingInput === "ccs" ? "Public High-Voltage DC Station" : chargingInput === "dedicated" ? "HECHHI high-power fast charge station" : "standard household 220V socket"}.</span>
+                  <span>Using {chargingInput === "ccs" ? "Public DC Car Pile" : chargingInput === "dedicated" ? "HECHHI high-power motorcycle dock" : "standard household 220V plug"}.</span>
                 )}
               </p>
             </div>
@@ -343,7 +353,7 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
             <div>
               <span className={`text-[10px] font-mono tracking-widest uppercase block mb-1 ${isDarkMode ? "text-brand-muted" : "text-slate-700"}`}>Aerodynamic Load Index</span>
               <div className="flex items-center gap-2">
-                <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDarkMode ? "bg-slate-950" : "bg-slate-200"}`}>
+                <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDarkMode ? "bg-brand-surface" : "bg-slate-200"}`}>
                   <div
                     className="h-full bg-gradient-to-r from-brand-cyan to-brand-blue transition-all duration-500"
                     style={{ width: `${Math.min(100, (speed / selectedModel.topSpeed) * 100)}%` }}
@@ -351,14 +361,14 @@ export default function SpecsSimulator({ isDarkMode = true }: SpecsSimulatorProp
                 </div>
                 <span className="text-xs font-mono text-brand-cyan font-bold">{Math.round((speed / selectedModel.topSpeed) * 100)}%</span>
               </div>
-              <p className={`text-[10px] leading-relaxed mt-2 ${isDarkMode ? "text-brand-muted/70" : "text-slate-600"}`}>
-                Higher aerodynamic load increases battery drain quadratically. Speed of 50-60 km/h offers maximum physical range.
+              <p className={`text-[10px] mt-1.5 ${isDarkMode ? "text-brand-muted/70" : "text-slate-600"}`}>
+                Higher aerodynamic load increases battery drain quadratically. Travel at 50-60 km/h for maximum range.
               </p>
             </div>
           </div>
 
-          <div className={`p-3 rounded-lg border text-[11px] font-mono z-10 ${
-            isDarkMode ? "bg-slate-950/60 border-brand-cyan/15 text-brand-muted" : "bg-white border-slate-200 text-slate-600"
+          <div className={`p-3 rounded-lg border text-[11px] font-mono ${
+            isDarkMode ? "bg-brand-surface/40 border-white/5 text-brand-muted" : "bg-white border-slate-200 text-slate-600"
           }`}>
             <div className="flex justify-between mb-1">
               <span>Model Type:</span>

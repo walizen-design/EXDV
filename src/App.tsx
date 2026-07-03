@@ -38,31 +38,6 @@ export default function App() {
   
   const currentModel = MODELS_DATA[selectedModelIdx];
 
-  // Scroll tracking and progress bar
-  const [scrollY, setScrollY] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalScroll > 0) {
-        setScrollProgress((window.scrollY / totalScroll) * 100);
-      }
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Simulated laboratory high-tech loading sequence
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 700);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Dynamic CSS custom property mapping for 100% style consistency
   useEffect(() => {
     const root = document.documentElement;
@@ -109,80 +84,13 @@ export default function App() {
     setTimeout(() => setCopiedContact(""), 3000);
   };
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 z-[100] bg-[#090e1a] flex flex-col items-center justify-center font-mono text-brand-cyan p-6 select-none">
-        {/* Coordination grid */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(#00f0ff_1px,transparent_1px),linear-gradient(90deg,#00f0ff_1px,transparent_1px)] bg-[size:16px_16px]" />
-        
-        <div className="relative flex flex-col items-center max-w-sm w-full space-y-6 text-center">
-          {/* Logo icon rotating/pulse */}
-          <div className="relative w-16 h-16 flex items-center justify-center animate-spin" style={{ animationDuration: "15s" }}>
-            <div className="absolute inset-0 rounded-full border-2 border-dashed border-brand-cyan/40 animate-ping" />
-            <svg className="w-10 h-10 text-brand-cyan fill-current" viewBox="0 0 68 40" aria-hidden="true">
-              <path d="M0 0 L26 0 L34 10 L42 0 L68 0 L44 28 L34 40 L24 28 Z M28 14 L34 22 L40 14 L34 6 Z" />
-            </svg>
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-sm font-bold tracking-widest uppercase text-white animate-pulse">HECHHI TELEMETRY SECURE BOOT</h2>
-            <div className="flex items-center justify-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] text-brand-muted uppercase tracking-widest">CONNECTING TO ZHEJIANG MAIN_FRAME</span>
-            </div>
-          </div>
-
-          {/* Holographic simulated bootlogs */}
-          <div className="w-full text-left bg-black/40 border border-white/5 rounded-lg p-4 h-36 overflow-hidden flex flex-col justify-end text-[9px] leading-relaxed text-brand-muted">
-            <div className="text-brand-cyan/80">[INIT] HECHHI E-XDV LAB SIMULATOR ACTIVE</div>
-            <div>[CORE] CORE_NODE_ONLINE (Port 3000)</div>
-            <div>[LOAD] SOLID-STATE BMS PROTOCOL CONNECTED</div>
-            <div>[KERN] EXP_SYS EXPORT HOMOLOGATION CONFIRMED</div>
-            <div className="text-emerald-400 animate-pulse">[OK] COGNITIVE TELEMETRY INTERFACE DEPLOYED</div>
-          </div>
-
-          {/* Loading bar */}
-          <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden relative border border-white/5">
-            <div className="absolute inset-y-0 left-0 bg-brand-cyan w-[70%] rounded-full animate-[shimmer-bar_1.5s_infinite_linear]" />
-          </div>
-          
-          <style>{`
-            @keyframes shimmer-bar {
-              0% { left: -100%; width: 50%; }
-              50% { width: 30%; }
-              100% { left: 100%; width: 50%; }
-            }
-          `}</style>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={`min-h-screen transition-colors duration-300 bg-brand-bg text-brand-text selection:bg-brand-cyan/30 selection:text-white font-sans relative overflow-x-hidden`}>
       
-      {/* Dynamic Scroll Progress Bar */}
-      <div id="scroll-progress" style={{ width: `${scrollProgress}%` }} />
-
-      {/* Floating Organic Aurora Background Mesh (Reacts to Model & Parallaxes on Scroll) */}
-      <div 
-        className="absolute inset-x-0 top-0 h-[300vh] overflow-hidden pointer-events-none z-0 select-none"
-        style={{ transform: `translateY(${scrollY * 0.18}px)` }}
-      >
-        {/* Glowing Aurora Blobs */}
-        <div className={`absolute top-[12%] left-[10%] w-[55vw] h-[55vw] md:w-[45rem] md:h-[45rem] rounded-full filter blur-[110px] opacity-25 mix-blend-screen animate-float-blob-1 transition-all duration-1000 ${
-          selectedModelIdx === 2 ? "bg-rose-500/80" : "bg-brand-cyan/80"
-        }`} />
-        <div className="absolute top-[35%] right-[5%] w-[60vw] h-[60vw] md:w-[50rem] md:h-[50rem] rounded-full filter blur-[130px] bg-brand-blue/70 opacity-20 mix-blend-screen animate-float-blob-2" />
-        <div className={`absolute top-[65%] left-[15%] w-[50vw] h-[50vw] md:w-[40rem] md:h-[40rem] rounded-full filter blur-[100px] opacity-20 mix-blend-screen animate-float-blob-3 transition-all duration-1000 ${
-          selectedModelIdx === 2 ? "bg-amber-500/70" : "bg-emerald-500/60"
-        }`} />
-
-        {/* Tactile Vignette Overlay */}
-        <div className="absolute inset-0 vignette-overlay" />
-        
-        {/* Unified 2% Film Noise texture */}
-        <div className="absolute inset-0 noise-overlay" />
+      {/* BACKGROUND ELEMENTS: Carbon weave overlay + grain */}
+      <div className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-300 ${isDarkMode ? "opacity-40" : "opacity-[0.05]"}`}>
+        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.01)_0_2px,transparent_2px_6px),linear-gradient(-45deg,rgba(255,255,255,0.01)_0_2px,transparent_2px_6px)]" />
+        <div className="absolute inset-0 bg-repeat bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 opacity=%220.015%22/%3E%3C/svg%3E')]" />
       </div>
 
       {/* TOP NAVIGATION HEADER */}
@@ -190,18 +98,17 @@ export default function App() {
         isDarkMode ? "bg-brand-bg/80 border-white/5" : "bg-white/80 border-slate-200"
       }`}>
         <div className="flex items-center gap-3">
-          <svg className="w-8 h-8 text-brand-cyan fill-current animate-breathing-logo" viewBox="0 0 68 40" aria-hidden="true">
+          <svg className="w-8 h-8 text-brand-cyan fill-current animate-pulse" viewBox="0 0 68 40" aria-hidden="true">
             <path d="M0 0 L26 0 L34 10 L42 0 L68 0 L44 28 L34 40 L24 28 Z M28 14 L34 22 L40 14 L34 6 Z" />
           </svg>
           <div>
             <div className="flex items-center gap-1.5">
               <span className={`font-display font-black text-lg tracking-wider transition-colors duration-300 ${isDarkMode ? "text-white" : "text-slate-900"}`}>HECHHI</span>
-              {/* Miniature electric blue & gold/red luxury accents */}
+              {/* Miniature racing stripes */}
               <div className="flex gap-0.5 h-3.5 items-center skew-x-12 select-none">
-                <span className="w-1.5 h-full bg-brand-cyan rounded-xs" />
-                <span className={`w-1.5 h-full rounded-xs animate-pulse duration-2000 ${
-                  selectedModelIdx === 2 ? "bg-rose-500 shadow-[0_0_8px_#f43f5e]" : "bg-brand-gold"
-                }`} />
+                <span className="w-1 h-full bg-[#00f0ff] rounded-xs" />
+                <span className="w-1 h-full bg-[#1d4ed8] rounded-xs" />
+                <span className="w-1 h-full bg-[#ef4444] rounded-xs" />
               </div>
             </div>
             <span className="text-[9px] font-mono tracking-widest text-brand-cyan block -mt-1 uppercase">E-XDV SERIES</span>
@@ -256,11 +163,7 @@ export default function App() {
       >
         {/* Cursor light tracking background glow */}
         <div
-          className={`absolute w-[60%] h-[50%] rounded-full blur-3xl pointer-events-none transition-all duration-500 bg-gradient-to-r ${
-            selectedModelIdx === 2
-              ? "from-red-500/10 to-amber-500/5"
-              : "from-brand-cyan/15 to-brand-blue/10"
-          }`}
+          className="absolute w-[60%] h-[50%] rounded-full blur-3xl opacity-15 pointer-events-none transition-all duration-300 bg-gradient-to-r from-brand-cyan to-brand-blue"
           style={{
             left: `${mousePos.x}%`,
             top: `${mousePos.y}%`,
@@ -268,9 +171,15 @@ export default function App() {
           }}
         />
 
-        {/* Subtle decorative coordination lines (Sophisticated Tech Atmosphere) */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 select-none">
-          <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(rgba(0,240,255,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(0,240,255,0.15)_1px,transparent_1px)] bg-[size:32px_32px]" />
+        {/* Iconic Racing Accent Stripes (Light Blue, Dark Blue, Red) mimicking BMW M performance style */}
+        <div className="absolute right-0 top-0 bottom-0 w-[45%] opacity-20 pointer-events-none overflow-hidden z-0 hidden lg:block select-none">
+          <div className="absolute inset-0 flex transform -skew-x-[22deg] translate-x-[25%] scale-y-125">
+            <div className="w-16 h-full bg-[#00f0ff] blur-md" />
+            <div className="w-16 h-full bg-[#1d4ed8] blur-md" />
+            <div className="w-16 h-full bg-[#ef4444] blur-md" />
+          </div>
+          <div className={`absolute inset-0 ${isDarkMode ? "bg-gradient-to-t from-[#090e1a] via-transparent to-[#090e1a]" : "bg-gradient-to-t from-[#f5f7fa] via-transparent to-[#f5f7fa]"}`} />
+          <div className={`absolute inset-0 ${isDarkMode ? "bg-gradient-to-l from-transparent to-[#090e1a]" : "bg-gradient-to-l from-transparent to-[#f5f7fa]"}`} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative">
@@ -288,11 +197,7 @@ export default function App() {
               isDarkMode ? "text-white" : "text-slate-900"
             }`}>
               Uncompromising Speed<br />
-              <span className={`text-transparent bg-clip-text bg-gradient-to-r ${
-                selectedModelIdx === 2
-                  ? "from-red-500 via-rose-500 to-amber-500 animate-pulse"
-                  : "from-brand-cyan via-brand-cyan/90 to-brand-blue animate-pulse"
-              }`}>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan via-brand-cyan/90 to-brand-blue animate-pulse">
                 Unstoppable Range
               </span>
             </h1>
@@ -304,43 +209,15 @@ export default function App() {
             </p>
 
             {/* Certifications row */}
-            <div className="space-y-2 overflow-hidden">
+            <div className="space-y-2">
               <span className="text-[10px] font-mono tracking-widest text-brand-muted uppercase block">
                 Export & Homologation Standards
               </span>
-              
-              {/* Mobile: Marquee, Desktop: Standard flex-wrap */}
-              <div className="block md:hidden overflow-hidden w-full relative">
-                {/* Left/Right fading edge masks for premium look */}
-                <div className={`absolute inset-y-0 left-0 w-8 z-10 pointer-events-none ${
-                  isDarkMode ? "bg-gradient-to-r from-[#090e1a] to-transparent" : "bg-gradient-to-r from-[#f5f7fa] to-transparent"
-                }`} />
-                <div className={`absolute inset-y-0 right-0 w-8 z-10 pointer-events-none ${
-                  isDarkMode ? "bg-gradient-to-l from-[#090e1a] to-transparent" : "bg-gradient-to-l from-[#f5f7fa] to-transparent"
-                }`} />
-                
-                <div className="animate-marquee py-1.5 flex gap-2">
-                  {[...CERTIFICATIONS, ...CERTIFICATIONS, ...CERTIFICATIONS].map((cert, index) => (
-                    <span
-                      key={`${cert}-${index}`}
-                      className={`text-[10px] font-mono font-bold px-3 py-1.5 rounded-md tracking-wider shadow-sm flex-shrink-0 ${
-                        isDarkMode
-                          ? "text-white bg-brand-surface border border-white/10"
-                          : "text-slate-700 bg-white border border-slate-200 shadow-slate-100/40"
-                      }`}
-                    >
-                      {cert}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Desktop: standard wrapping layout */}
-              <div className="hidden md:flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 {CERTIFICATIONS.map((cert) => (
                   <span
                     key={cert}
-                    className={`text-[10px] font-mono font-bold px-3 py-1.5 rounded-md tracking-wider shadow-sm hover:border-brand-cyan/40 hover:-translate-y-0.5 transition-all duration-300 cursor-default ${
+                    className={`text-[10px] font-mono font-bold px-3 py-1.5 rounded-md tracking-wider shadow-sm hover:border-brand-cyan/40 transition-colors duration-300 ${
                       isDarkMode
                         ? "text-white bg-brand-surface/80 border border-white/10"
                         : "text-slate-700 bg-white border border-slate-200 shadow-slate-100/40"
@@ -418,14 +295,14 @@ export default function App() {
                 </h3>
               </div>
 
-              {/* Toggle switch: swipeable container on mobile, vertical column on desktop */}
-              <div className="flex md:flex-col gap-2.5 overflow-x-auto md:overflow-visible no-scrollbar scroll-snap-x snap-mandatory pb-2 md:pb-0 scroll-smooth">
+              {/* Toggle switch */}
+              <div className="flex flex-col gap-2.5">
                 {MODELS_DATA.map((model, idx) => (
                   <button
                     key={model.name}
                     id={`hero-model-select-${model.name.toLowerCase().replace(/\s+/g, '-')}`}
                     onClick={() => setSelectedModelIdx(idx)}
-                    className={`group min-w-[250px] md:min-w-0 flex-shrink-0 snap-center w-[85%] md:w-full text-left p-4 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-brand-cyan/50 focus:outline-none ${
+                    className={`group w-full text-left p-4 rounded-xl border transition-all duration-300 ${
                       selectedModelIdx === idx
                         ? `${isDarkMode ? "bg-brand-bg/90 border-brand-cyan/40" : "bg-brand-cyan/5 border-brand-cyan/40"} text-brand-cyan shadow-lg`
                         : `${isDarkMode ? "bg-brand-bg/40 border-transparent text-brand-muted hover:text-white hover:border-white/10 hover:bg-brand-bg/80" : "bg-slate-50 border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-200 hover:bg-slate-100"}`
@@ -483,18 +360,18 @@ export default function App() {
           </p>
         </div>
 
-        {/* BENTO STATS GRID (With elevated hover scale, high contrast shadow gains, and red/gold flagships highlights) */}
+        {/* BENTO STATS GRID */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           
           {/* Card 1: Top Speed */}
-          <div className={`border rounded-2xl p-6 relative overflow-hidden group hover:border-brand-cyan/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-brand-cyan/5 transition-all duration-300 ${
+          <div className={`border rounded-2xl p-6 relative overflow-hidden group hover:border-brand-cyan/20 transition-all duration-300 ${
             isDarkMode ? "bg-brand-surface border-white/5" : "bg-white border-slate-200 shadow-sm"
           }`}>
-            {/* Electric Blue & Gold premium accent band */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] flex opacity-90">
-              <div className="flex-[2] bg-brand-cyan" />
-              <div className="flex-1 bg-brand-blue" />
-              <div className={`flex-[2] ${selectedModelIdx === 2 ? "bg-rose-500 shadow-[0_0_8px_#f43f5e]" : "bg-brand-gold"} animate-pulse duration-3000`} />
+            {/* 3-stripe sport accent */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] flex opacity-85">
+              <div className="flex-1 bg-[#00f0ff]" />
+              <div className="flex-1 bg-[#1d4ed8]" />
+              <div className="flex-1 bg-[#ef4444]" />
             </div>
             <div className="absolute top-0 right-0 w-24 h-24 bg-brand-cyan/5 rounded-full blur-2xl pointer-events-none group-hover:bg-brand-cyan/10 transition-colors" />
             <span className="text-[10px] font-mono tracking-widest text-brand-muted uppercase block mb-3">Peak Speed Rating</span>
@@ -511,14 +388,14 @@ export default function App() {
           </div>
 
           {/* Card 2: Range */}
-          <div className={`border rounded-2xl p-6 relative overflow-hidden group hover:border-brand-cyan/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-brand-cyan/5 transition-all duration-300 ${
+          <div className={`border rounded-2xl p-6 relative overflow-hidden group hover:border-brand-cyan/20 transition-all duration-300 ${
             isDarkMode ? "bg-brand-surface border-white/5" : "bg-white border-slate-200 shadow-sm"
           }`}>
-            {/* Electric Blue & Gold premium accent band */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] flex opacity-90">
-              <div className="flex-[2] bg-brand-cyan" />
-              <div className="flex-1 bg-brand-blue" />
-              <div className={`flex-[2] ${selectedModelIdx === 2 ? "bg-rose-500 shadow-[0_0_8px_#f43f5e]" : "bg-brand-gold"} animate-pulse duration-3000`} />
+            {/* 3-stripe sport accent */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] flex opacity-85">
+              <div className="flex-1 bg-[#00f0ff]" />
+              <div className="flex-1 bg-[#1d4ed8]" />
+              <div className="flex-1 bg-[#ef4444]" />
             </div>
             <div className="absolute top-0 right-0 w-24 h-24 bg-brand-blue/5 rounded-full blur-2xl pointer-events-none group-hover:bg-brand-blue/10 transition-colors" />
             <span className="text-[10px] font-mono tracking-widest text-brand-muted uppercase block mb-3">Max Tested Range</span>
@@ -535,14 +412,14 @@ export default function App() {
           </div>
 
           {/* Card 3: Acceleration */}
-          <div className={`border rounded-2xl p-6 relative overflow-hidden group hover:border-brand-cyan/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-brand-cyan/5 transition-all duration-300 ${
+          <div className={`border rounded-2xl p-6 relative overflow-hidden group hover:border-brand-cyan/20 transition-all duration-300 ${
             isDarkMode ? "bg-brand-surface border-white/5" : "bg-white border-slate-200 shadow-sm"
           }`}>
-            {/* Electric Blue & Gold premium accent band */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] flex opacity-90">
-              <div className="flex-[2] bg-brand-cyan" />
-              <div className="flex-1 bg-brand-blue" />
-              <div className={`flex-[2] ${selectedModelIdx === 2 ? "bg-rose-500 shadow-[0_0_8px_#f43f5e]" : "bg-brand-gold"} animate-pulse duration-3000`} />
+            {/* 3-stripe sport accent */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] flex opacity-85">
+              <div className="flex-1 bg-[#00f0ff]" />
+              <div className="flex-1 bg-[#1d4ed8]" />
+              <div className="flex-1 bg-[#ef4444]" />
             </div>
             <div className="absolute top-0 right-0 w-24 h-24 bg-brand-cyan/5 rounded-full blur-2xl pointer-events-none group-hover:bg-brand-cyan/10 transition-colors" />
             <span className="text-[10px] font-mono tracking-widest text-brand-muted uppercase block mb-3">0-50 km/h Launch</span>
@@ -559,14 +436,14 @@ export default function App() {
           </div>
 
           {/* Card 4: Peak Power */}
-          <div className={`border rounded-2xl p-6 relative overflow-hidden group hover:border-brand-cyan/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-brand-cyan/5 transition-all duration-300 ${
+          <div className={`border rounded-2xl p-6 relative overflow-hidden group hover:border-brand-cyan/20 transition-all duration-300 ${
             isDarkMode ? "bg-brand-surface border-white/5" : "bg-white border-slate-200 shadow-sm"
           }`}>
-            {/* Electric Blue & Gold premium accent band */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] flex opacity-90">
-              <div className="flex-[2] bg-brand-cyan" />
-              <div className="flex-1 bg-brand-blue" />
-              <div className={`flex-[2] ${selectedModelIdx === 2 ? "bg-rose-500 shadow-[0_0_8px_#f43f5e]" : "bg-brand-gold"} animate-pulse duration-3000`} />
+            {/* 3-stripe sport accent */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] flex opacity-85">
+              <div className="flex-1 bg-[#00f0ff]" />
+              <div className="flex-1 bg-[#1d4ed8]" />
+              <div className="flex-1 bg-[#ef4444]" />
             </div>
             <div className="absolute top-0 right-0 w-24 h-24 bg-brand-blue/5 rounded-full blur-2xl pointer-events-none group-hover:bg-brand-blue/10 transition-colors" />
             <span className="text-[10px] font-mono tracking-widest text-brand-muted uppercase block mb-3">Peak Power Output</span>
@@ -741,14 +618,14 @@ export default function App() {
           </p>
         </div>
 
-        {/* Model Tabs Selection: swipeable/scroll snap container on mobile, horizontal scroll list on desktop */}
-        <div className={`flex border-b mb-8 overflow-x-auto no-scrollbar scroll-snap-x snap-mandatory scroll-smooth transition-colors duration-300 ${isDarkMode ? "border-white/5" : "border-slate-200"}`}>
+        {/* Model Tabs Selection */}
+        <div className={`flex border-b mb-8 overflow-x-auto transition-colors duration-300 ${isDarkMode ? "border-white/5" : "border-slate-200"}`}>
           {MODELS_DATA.map((m, idx) => (
             <button
               key={m.name}
               id={`tab-select-${m.name.toLowerCase().replace(/\s+/g, '-')}`}
               onClick={() => setSelectedModelIdx(idx)}
-              className={`flex-1 min-w-[160px] sm:min-w-[180px] snap-center text-left p-4 relative transition-all duration-300 focus:ring-2 focus:ring-brand-cyan/50 focus:outline-none ${
+              className={`flex-1 min-w-[180px] text-left p-4 relative transition-colors ${
                 selectedModelIdx === idx
                   ? (isDarkMode ? "bg-brand-surface/40" : "bg-slate-100")
                   : (isDarkMode ? "hover:bg-brand-surface/20" : "hover:bg-slate-50")
